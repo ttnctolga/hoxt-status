@@ -40,8 +40,7 @@ jobs:
         run: |
           set -eu
           [ -n "$EXPECTED_RECORDS" ] || { echo "EXPECTED_RECORDS secret yok"; exit 1; }
-          printf '%s
-' "$EXPECTED_RECORDS" > expected-records.tsv
+          echo "$EXPECTED_RECORDS" > expected-records.tsv
 
       - name: Kontroller
         env:
