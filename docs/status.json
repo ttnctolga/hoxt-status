@@ -1,0 +1,48 @@
+{
+  "overall": "operational",
+  "generated_at": "2026-10-15T15:13:28.747262+00:00",
+  "components": [
+    {
+      "id": "license-api",
+      "name": "License service",
+      "status": "operational",
+      "since": "2026-10-15T15:13:28.747262+00:00",
+      "uptime_90d": 100.0
+    },
+    {
+      "id": "portal",
+      "name": "Customer portal",
+      "status": "operational",
+      "since": "2026-10-15T15:13:28.747262+00:00",
+      "uptime_90d": 100.0
+    },
+    {
+      "id": "remote-install",
+      "name": "Remote install service",
+      "status": "operational",
+      "since": "2026-10-15T15:13:28.747262+00:00",
+      "uptime_90d": 100.0
+    },
+    {
+      "id": "downloads",
+      "name": "Installer & release downloads",
+      "status": "operational",
+      "since": "2026-10-15T15:13:28.747262+00:00",
+      "uptime_90d": 100.0
+    },
+    {
+      "id": "tls",
+      "name": "TLS certificates",
+      "status": "operational",
+      "since": "2026-10-15T15:13:28.747262+00:00",
+      "uptime_90d": 100.0
+    },
+    {
+      "id": "dns",
+      "name": "DNS & email records",
+      "status": "operational",
+      "since": "2026-10-15T15:13:28.747262+00:00",
+      "uptime_90d": 100.0
+    }
+  ]
+}
