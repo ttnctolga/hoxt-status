@@ -1,0 +1,71 @@
+name: probe
+
+# Hoxt DURUM İZLEYİCİSİ (status.hoxt.net + DNS izleme). Bu dosya `hoxt` deposunda `infra/status/probe.yml` olarak YAŞAR; herkese açık `hoxt-status` deposuna
+# `scripts/status-publish.sh` ile `.github/workflows/probe.yml` olarak kopyalanır. GitHub'ın bulut çalıştırıcısı lisans sunucusundan BAĞIMSIZ bir gözlem noktasıdır
+# (lisans sunucusu çökse bile sayfa ayakta kalır). Her 5 dakikada: HTTP + TLS + DNS (yetkili NS + 8.8.8.8/1.1.1.1) → data/ + docs/ (GitHub Pages: main /docs).
+# SIR: `NTFY_TOPIC` (telefon alarm kanalı) ve `EXPECTED_RECORDS` (beklenen DNS kayıtları; sunucu IP'leri içerdiği için depoda DEĞİL, secret'ta). Çıktılar herkese açıktır:
+# yalnız hizmet adı + durum + zaman — public_gate.py her turda bunu zorlar.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+
+      - name: dig var mı
+        run: command -v dig >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils)
+
+      - name: Birim testler (izleyicinin kendisi bozulmasın)
+        run: python3 -m unittest discover -s . -p 'test_*.py'
+
+      - name: Beklenen DNS kayıtları (Actions secret; IP içerir, depoda YOK)
+        env:
+          EXPECTED_RECORDS: ${{ secrets.EXPECTED_RECORDS }}
+        run: |
+          set -eu
+          [ -n "$EXPECTED_RECORDS" ] || { echo "EXPECTED_RECORDS secret yok"; exit 1; }
+          printf '%s
+' "$EXPECTED_RECORDS" > expected-records.tsv
+
+      - name: Kontroller
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python3 probe.py --config checks.json --records expected-records.tsv --data data
+
+      - name: Sayfayı üret
+        run: python3 render.py --data data --out docs
+
+      - name: GİZLİLİK KAPISI (public depoya IP / iç ad / hata ayrıntısı / log girmez; ihlalde YAYINLANMAZ)
+        run: |
+          python3 public_gate.py source probe.py render.py checks.json .github/workflows/probe.yml
+          python3 public_gate.py output data docs
+
+      - name: Değişiklik varsa kaydet (durum değişimi anında; aksi halde saatte bir)
+        run: |
+          set -eu
+          git config user.name 'hoxt-status[bot]'
+          git config user.email 'hoxt-status@users.noreply.github.com'
+          git add data docs
+          if git diff --cached --quiet; then exit 0; fi
+          CHANGED_STATUS=0
+          git diff --cached -U0 -- data/status.json | grep -E '^[+-] +"(status|since)"' >/dev/null && CHANGED_STATUS=1
+          if [ "$CHANGED_STATUS" = 1 ] || [ "$(date -u +%M)" -lt 5 ]; then
+            git commit -q -m "status $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push -q
+          fi

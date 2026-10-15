@@ -1,0 +1,100 @@
+{
+  "components": [
+    {
+      "id": "license-api",
+      "name": "License service"
+    },
+    {
+      "id": "portal",
+      "name": "Customer portal"
+    },
+    {
+      "id": "remote-install",
+      "name": "Remote install service"
+    },
+    {
+      "id": "downloads",
+      "name": "Installer & release downloads"
+    },
+    {
+      "id": "tls",
+      "name": "TLS certificates"
+    },
+    {
+      "id": "dns",
+      "name": "DNS & email records"
+    }
+  ],
+  "authoritative": [
+    "ns231.hozzt.com",
+    "ns232.hozzt.com"
+  ],
+  "public_resolvers": [
+    "8.8.8.8",
+    "1.1.1.1"
+  ],
+  "checks": [
+    {
+      "id": "license-up",
+      "component": "license-api",
+      "type": "http",
+      "url": "https://license.hoxt.net/up",
+      "status": 200
+    },
+    {
+      "id": "portal-login",
+      "component": "portal",
+      "type": "http",
+      "url": "https://my.hoxt.net/login",
+      "status": 200
+    },
+    {
+      "id": "portal-plans",
+      "component": "portal",
+      "type": "http",
+      "url": "https://my.hoxt.net/plans",
+      "status": 200
+    },
+    {
+      "id": "remote-health",
+      "component": "remote-install",
+      "type": "http",
+      "url": "https://my.hoxt.net:8443/healthz",
+      "status": 200,
+      "contains": "ok"
+    },
+    {
+      "id": "installer-script",
+      "component": "downloads",
+      "type": "http",
+      "url": "https://license.hoxt.net/install",
+      "status": 200,
+      "contains": "hoxt",
+      "slow_seconds": 10
+    },
+    {
+      "id": "tls-my",
+      "component": "tls",
+      "type": "tls",
+      "host": "my.hoxt.net"
+    },
+    {
+      "id": "tls-license",
+      "component": "tls",
+      "type": "tls",
+      "host": "license.hoxt.net"
+    },
+    {
+      "id": "tls-remote",
+      "component": "tls",
+      "type": "tls",
+      "host": "my.hoxt.net",
+      "port": 8443
+    },
+    {
+      "id": "dns-records",
+      "component": "dns",
+      "type": "dns"
+    }
+  ]
+}
